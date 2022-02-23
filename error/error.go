@@ -1,34 +1,41 @@
 package error
 
-type Code string
+import "github.com/go-tempest/tempest/error/code"
 
 type UnifiedErr interface {
     error
-    ErrCode() string
+    Code() string
 }
 
 type SystemErr struct {
-    Code
-    Message string
+    C             *code.Code
+    CustomMessage string
 }
 
 func (e SystemErr) Error() string {
-    return e.Message
+    return getMessage(e.CustomMessage, e.C.DefaultMessage)
 }
 
-func (e SystemErr) ErrCode() string {
-    return string(e.Code)
+func (e SystemErr) Code() string {
+    return e.C.Code
 }
 
 type ApplicationErr struct {
-    Code
-    Message string
+    C             *code.Code
+    CustomMessage string
 }
 
 func (e ApplicationErr) Error() string {
-    return e.Message
+    return getMessage(e.CustomMessage, e.C.DefaultMessage)
 }
 
-func (e ApplicationErr) ErrCode() string {
-    return string(e.Code)
+func (e ApplicationErr) Code() string {
+    return e.C.Code
+}
+
+func getMessage(customMessage, defaultMessage string) string {
+    if customMessage == "" {
+        return defaultMessage
+    }
+    return customMessage
 }
