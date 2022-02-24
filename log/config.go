@@ -2,7 +2,6 @@ package log
 
 import (
     "github.com/go-tempest/tempest/config"
-    "github.com/go-tempest/tempest/log/zap"
 )
 
 type (
@@ -24,10 +23,10 @@ const (
 
 func Initialize() {
     t := config.TempestConfig.Logger.Type
-    switch t {
+    switch Type(t) {
     case Zap:
-        zap.Create()
+        Create()
     default:
-        zap.Create()
+        Create()
     }
 }

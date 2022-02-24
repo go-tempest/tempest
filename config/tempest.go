@@ -2,7 +2,6 @@ package config
 
 import (
     "github.com/go-tempest/tempest/env"
-    "github.com/go-tempest/tempest/log"
 )
 
 const (
@@ -27,19 +26,31 @@ type Profiles struct {
 }
 
 type Registration struct {
-    Address      string
-    Port         int
-    RegisterSelf bool `yaml:"register-self"`
-    Enabled      bool
+    Enabled bool
+    Address string
+    Port    int
+    Service
+}
+
+type Service struct {
+    RegisterSelf    bool   `mapstructure:"register-self"`
+    DeregisterAfter string `mapstructure:"deregister-after"`
+    Host            string
+    Health
+}
+
+type Health struct {
+    CheckInerval string `mapstructure:"check-interval"`
+    CheckUrl    string `mapstructure:"check-url"`
 }
 
 type Logger struct {
-    log.Type
-    log.Level
-    Filename   string
-    MaxSize    int
-    MaxBackups int
-    MaxAge     int
+    Type       string
+    Level      string
+    Filename   string `mapstructure:"filename"`
+    MaxSize    int    `mapstructure:"max-size"`
+    MaxBackups int    `mapstructure:"max-backups"`
+    MaxAge     int    `mapstructure:"max-age"`
     Compress   bool
 }
 

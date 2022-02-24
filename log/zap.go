@@ -1,9 +1,8 @@
-package zap
+package log
 
 import (
     "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/env"
-    "github.com/go-tempest/tempest/log"
     "github.com/natefinch/lumberjack"
     "go.uber.org/zap"
     "go.uber.org/zap/zapcore"
@@ -18,17 +17,17 @@ func Create() {
     Logger = zap.New(core).Sugar()
 }
 
-func getLevel(l log.Level) (zapLevel zapcore.Level) {
-    switch l {
-    case log.Debug:
+func getLevel(l string) (zapLevel zapcore.Level) {
+    switch Level(l) {
+    case Debug:
         zapLevel = zapcore.DebugLevel
-    case log.Info:
+    case Info:
         zapLevel = zapcore.InfoLevel
-    case log.Error:
+    case Error:
         zapLevel = zapcore.ErrorLevel
-    case log.Panic:
+    case Panic:
         zapLevel = zapcore.PanicLevel
-    case log.Fatal:
+    case Fatal:
         zapLevel = zapcore.FatalLevel
     default:
         zapLevel = zapcore.InfoLevel

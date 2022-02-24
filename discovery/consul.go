@@ -3,9 +3,11 @@ package discovery
 import (
     "fmt"
     "github.com/go-kit/kit/sd/consul"
+    "github.com/go-tempest/tempest/consts"
+    tempesterr "github.com/go-tempest/tempest/error"
+    "github.com/go-tempest/tempest/log"
     "github.com/hashicorp/consul/api"
     "github.com/hashicorp/consul/api/watch"
-    "log"
     "strconv"
     "sync"
 )
@@ -42,9 +44,8 @@ func New(registerHost string, registerPort int) (Client, error) {
     }, err
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, healthCheckUrl string,
-    logger *log.Logger,
-    instanceHost string, instancePort int,
+func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, instanceHost string,
+    instancePort int, healthCheckUrl string,
     meta map[string]string, tags ...string) bool {
 
     registration := &api.AgentServiceRegistration{
@@ -55,24 +56,24 @@ func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, h
         Meta:    meta,
         Tags:    tags,
         Check: &api.AgentServiceCheck{
-            DeregisterCriticalServiceAfter: "30s",
+            Interval:                       "15s",
+            DeregisterCriticalServiceAfter: "15m",
             HTTP: fmt.Sprintf("%s%s%s%s%s", httpProtocol, instanceHost,
                 portSeparator, strconv.Itoa(instancePort), healthCheckUrl),
-            Interval: "15s",
         },
     }
 
     err := wrapper.client.Register(registration)
     if err != nil {
-        logger.Println("Register Service Error!", err)
+        log.Logger.Error("Register Service Error", err)
         return false
     }
 
-    logger.Println("Register Service Success!")
+    log.Logger.Info("Register Service Success!")
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string, logger *log.Logger) bool {
+func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string) bool {
 
     registration := &api.AgentServiceRegistration{
         ID: instanceId,
@@ -80,17 +81,15 @@ func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string, logge
 
     err := wrapper.client.Deregister(registration)
     if err != nil {
-        logger.Println("Deregister Service Error!", err)
+        log.Logger.Error("Deregister Service Error!", err)
         return false
     }
 
-    logger.Println("Deregister Service Success!")
+    log.Logger.Info("Deregister Service Success!")
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(
-    serviceName, tag string,
-    logger *log.Logger) []interface{} {
+func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag string) []interface{} {
 
     instanceList, ok := wrapper.instanceCache.Load(serviceName)
     if ok {
@@ -106,9 +105,11 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(
     }
 
     go func() {
-        params := make(map[string]interface{})
-        params["type"] = "service"
-        params["service"] = serviceName
+        params, err := getWatchParams("type", "service", "service", serviceName)
+        if err != nil {
+            log.Logger.Error("Discover Service Error!", err)
+            return
+        }
 
         plan, _ := watch.Parse(params)
         plan.Handler = func(u uint64, i interface{}) {
@@ -136,16 +137,16 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(
         }
         defer plan.Stop()
 
-        err := plan.Run(wrapper.config.Address)
-        if err != nil {
-            logger.Println("Deregister Service Error!", err)
+        e := plan.Run(wrapper.config.Address)
+        if e != nil {
+            log.Logger.Error("Discover Service Error!", e)
         }
     }()
 
     entries, _, err := wrapper.client.Service(serviceName, tag, false, nil)
     if err != nil {
         wrapper.instanceCache.Store(serviceName, []interface{}{})
-        logger.Println("Discover Service Error!", err)
+        log.Logger.Error("Discover Service Error!", err)
         return nil
     }
 
@@ -156,4 +157,24 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(
     wrapper.instanceCache.Store(serviceName, instances)
 
     return instances
+}
+
+func getWatchParams(args ...string) (map[string]interface{}, tempesterr.UnifiedErr) {
+
+    l := len(args)
+    if l%2 != 0 {
+        return nil, tempesterr.SystemErr{
+            C: consts.IllegalArgument,
+            CustomMessage: fmt.Sprintf(
+                "The parameter length of the method is expected to be an even number, but is actually %d", l),
+        }
+    }
+
+    step := 2
+    params := make(map[string]interface{})
+    for i := 0; i < l; i = i + step {
+        params[args[i]] = args[i+1]
+    }
+
+    return params, nil
 }
