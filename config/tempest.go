@@ -1,34 +1,46 @@
 package config
 
+import (
+    "github.com/go-tempest/tempest/env"
+    "github.com/go-tempest/tempest/log"
+)
+
 const (
-	DefaultConfigType string = "yaml"
-	DefaultConfigName string = "boostrap.yaml"
+    DefaultConfigType string = "yaml"
+    DefaultConfigName string = "boostrap.yaml"
 )
 
 type Tempest struct {
-	Application  Application
-	Registration Registration
-	Logger       Logger
+    Application
+    Registration
+    Logger
 }
 
 type Application struct {
-	Name string
-	Port int
+    Name string
+    Port int
+    Profiles
+}
+
+type Profiles struct {
+    Active env.Env
 }
 
 type Registration struct {
-	Address      string
-	Port         int
-	RegisterSelf bool `yaml:"register-self"`
-	Enabled      bool
+    Address      string
+    Port         int
+    RegisterSelf bool `yaml:"register-self"`
+    Enabled      bool
 }
 
 type Logger struct {
-	Filename   string //日志文件的位置
-	MaxSize    int    //在进行切割之前，日志文件的最大大小（以MB为单位）
-	MaxBackups int    //保留旧文件的最大个数
-	MaxAge     int    //保留旧文件的最大天数
-	Compress   bool   //是否压缩/归档旧文件
+    log.Type
+    log.Level
+    Filename   string
+    MaxSize    int
+    MaxBackups int
+    MaxAge     int
+    Compress   bool
 }
 
-var TempestCfg Tempest
+var TempestConfig Tempest

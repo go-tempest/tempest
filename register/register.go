@@ -13,16 +13,16 @@ type Registration struct {
 }
 
 func (r *Registration) StartIfNecessary() {
-    enabled := config.TempestCfg.Registration.Enabled
+    enabled := config.TempestConfig.Registration.Enabled
     if enabled {
         client, err := r.connect()
         if err != nil {
             os.Exit(-1)
         }
 
-        registerSelf := config.TempestCfg.Registration.RegisterSelf
+        registerSelf := config.TempestConfig.Registration.RegisterSelf
         if registerSelf {
-            serviceName := config.TempestCfg.Application.Name
+            serviceName := config.TempestConfig.Application.Name
             instanceId := serviceName + instanceIdSeparator + uuid.NewV4().String()
 
             if !client.Register(serviceName, instanceId, "/health", nil, "127.0.0.1", 8080, nil) {
@@ -35,8 +35,8 @@ func (r *Registration) StartIfNecessary() {
 func (r *Registration) connect() (discovery.Client, error) {
 
     client, err := discovery.New(
-        config.TempestCfg.Registration.Address,
-        config.TempestCfg.Registration.Port,
+        config.TempestConfig.Registration.Address,
+        config.TempestConfig.Registration.Port,
     )
 
     if err != nil {

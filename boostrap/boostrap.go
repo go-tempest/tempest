@@ -29,7 +29,7 @@ func getConfigPath() *string {
 }
 
 func parseYaml(v *viper.Viper) {
-	if err := v.Unmarshal(&config.TempestCfg); err != nil {
+	if err := v.Unmarshal(&config.TempestConfig); err != nil {
 		fmt.Println("初始化配置失败") // TODO 后续替换成通用日志组件
 		os.Exit(-1)
 	}
@@ -37,8 +37,8 @@ func parseYaml(v *viper.Viper) {
 
 func init() {
 	initViper()
-	log.InitLogger()  //初始化日志
-	defer log.Flush() //刷新日志
+	log.Initialize()
+
 	new(bootstrap).start()
 }
 
