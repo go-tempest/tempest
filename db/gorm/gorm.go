@@ -12,11 +12,8 @@ import (
 
 var DB *gorm.DB
 
-type Gorm struct {
-}
-
 // Initialize 初始化Mysql数据库
-func (g Gorm) Initialize() {
+func Initialize() {
 	m := config.TempestConfig.Mysql
 	dsn := m.Username + ":" + m.Password + "@tcp(" + m.Path + ")/" + m.Dbname + "?" + m.Config
 	mysqlConfig := mysql.Config{
@@ -33,22 +30,17 @@ func (g Gorm) Initialize() {
 		fmt.Println("MySQL启动异常", zap.Any("err", err)) //todo 替换成logger
 		os.Exit(0)
 	} else {
-		//registerTables(DB)
 		sqlDB, _ := DB.DB()
 		sqlDB.SetMaxIdleConns(m.MaxIdleCons)
 		sqlDB.SetMaxOpenConns(m.MaxOpenCons)
 	}
 }
 
-func (g Gorm) DB() *gorm.DB {
-	return DB
-}
-
 // config 根据配置决定是否开启日志
 func logConfig(m *config.Mysql) (c *gorm.Config) {
 	if m.LogMode {
 		c = &gorm.Config{
-			Logger:                                   logger.Default.LogMode(m.LogModeLevel),
+			Logger:                                   logger.Default.LogMode(logger.Info),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		}
 	} else {
@@ -58,14 +50,4 @@ func logConfig(m *config.Mysql) (c *gorm.Config) {
 		}
 	}
 	return
-}
-
-// RegisterTables 注册数据库表专用
-func (g Gorm) RegisterTables(models ...interface{}) {
-	err := DB.AutoMigrate(models) //注册model文件
-	if err != nil {
-		fmt.Println("register table failed", zap.Any("err", err)) //todo 替换成logger
-		os.Exit(0)
-	}
-	fmt.Println("register table success") //todo 替换成logger
 }

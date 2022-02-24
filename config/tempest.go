@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/go-tempest/tempest/env"
 	"github.com/go-tempest/tempest/log"
-	"gorm.io/gorm/logger"
 )
 
 const (
@@ -47,15 +46,14 @@ type Logger struct {
 }
 
 type Mysql struct {
-	Username     string
-	Password     string
-	Path         string
-	Dbname       string
-	Config       string
-	MaxIdleCons  int
-	MaxOpenCons  int
-	LogMode      bool
-	LogModeLevel logger.LogLevel
+	Username    string
+	Password    string
+	Path        string
+	Dbname      string
+	Config      string
+	MaxIdleCons int
+	MaxOpenCons int
+	LogMode     bool
 }
 
 type SqlXml struct {
