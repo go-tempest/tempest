@@ -4,6 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-tempest/tempest/config"
+	"github.com/go-tempest/tempest/db"
+	"github.com/go-tempest/tempest/db/gorm"
+	"github.com/go-tempest/tempest/db/sql"
 	"github.com/go-tempest/tempest/log"
 	"github.com/go-tempest/tempest/register"
 	"github.com/spf13/viper"
@@ -38,7 +41,8 @@ func parseYaml(v *viper.Viper) {
 func init() {
 	initViper()
 	log.Initialize()
-
+	db.Interface(gorm.Gorm{}).Initialize()
+	sql.Initialize()
 	new(bootstrap).start()
 }
 
