@@ -24,7 +24,10 @@ func (b *bootstrap) start() {
 }
 
 func getFlagConfigPath() *string {
-    var configPath = flag.String("config", "", "Specifies the path used to search the configuration file")
+    configPath := flag.String(
+        "conf",
+        "",
+        "Specifies the path used to search the configuration file")
     flag.Parse()
     return configPath
 }

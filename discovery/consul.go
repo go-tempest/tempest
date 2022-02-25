@@ -3,6 +3,7 @@ package discovery
 import (
     "fmt"
     "github.com/go-kit/kit/sd/consul"
+    tempestconfig "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/consts"
     tempesterr "github.com/go-tempest/tempest/error"
     "github.com/go-tempest/tempest/log"
@@ -15,6 +16,9 @@ import (
 const (
     httpProtocol  string = "http://"
     portSeparator string = ":"
+
+    defaultHealthCheckInterval    string = "15s"
+    defaultDeregisterServiceAfter string = "15m"
 )
 
 type ConsulDiscoveryClientWrapper struct {
@@ -56,8 +60,10 @@ func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, i
         Meta:    meta,
         Tags:    tags,
         Check: &api.AgentServiceCheck{
-            Interval:                       "15s",
-            DeregisterCriticalServiceAfter: "15m",
+            Interval: getStringVal(
+                tempestconfig.TempestConfig.Registration.Service.Health.CheckInerval, defaultHealthCheckInterval),
+            DeregisterCriticalServiceAfter: getStringVal(
+                tempestconfig.TempestConfig.Registration.Service.DeregisterAfter, defaultDeregisterServiceAfter),
             HTTP: fmt.Sprintf("%s%s%s%s%s", httpProtocol, instanceHost,
                 portSeparator, strconv.Itoa(instancePort), healthCheckUrl),
         },
@@ -112,7 +118,7 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag s
         }
 
         plan, _ := watch.Parse(params)
-        plan.Handler = func(u uint64, i interface{}) {
+        plan.Handler = func(_ uint64, i interface{}) {
 
             if i == nil {
                 return
@@ -143,7 +149,7 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag s
         }
     }()
 
-    entries, _, err := wrapper.client.Service(serviceName, tag, false, nil)
+    entries, _, err := wrapper.client.Service(serviceName, tag, true, nil)
     if err != nil {
         wrapper.instanceCache.Store(serviceName, []interface{}{})
         log.Logger.Error("Discover Service Error!", err)
@@ -177,4 +183,11 @@ func getWatchParams(args ...string) (map[string]interface{}, tempesterr.UnifiedE
     }
 
     return params, nil
+}
+
+func getStringVal(val, defaultVal string) string {
+    if val == "" {
+        return defaultVal
+    }
+    return val
 }

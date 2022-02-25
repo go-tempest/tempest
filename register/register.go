@@ -1,6 +1,7 @@
 package register
 
 import (
+    "fmt"
     "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/discovery"
     "github.com/go-tempest/tempest/utils"
@@ -8,7 +9,10 @@ import (
     "os"
 )
 
-const instanceIdSeparator string = "_"
+const (
+    instanceIdSeparator   string = "_"
+    defaultHealthCheckUrl string = "/health"
+)
 
 type Registration struct {
 }
@@ -28,9 +32,13 @@ func (r *Registration) StartIfNecessary() {
             instanceId := serviceName + instanceIdSeparator + uuid.NewV4().String()
             instanceHost := getLocalHost()
             instancePort := config.TempestConfig.Application.Port
-            healthCheckUrl := config.TempestConfig.Registration.Service.Health.CheckUrl
+            healthCheckUrl := getHealthCheckUrl()
+            tags := config.TempestConfig.Registration.Service.Tags
 
-            if !client.Register(serviceName, instanceId, instanceHost, instancePort, healthCheckUrl, nil) {
+            if !client.Register(serviceName, instanceId, instanceHost,
+                instancePort, healthCheckUrl, nil, tags...) {
+
+                fmt.Println("Failed to register for service")
                 os.Exit(-1)
             }
         }
@@ -51,11 +59,20 @@ func (r *Registration) connect() (discovery.Client, error) {
     return client, nil
 }
 
+func getHealthCheckUrl() string {
+    url := config.TempestConfig.Registration.Service.Health.CheckUrl
+    if url == "" {
+        url = defaultHealthCheckUrl
+    }
+    return url
+}
+
 func getLocalHost() string {
     instanceHost := config.TempestConfig.Registration.Service.Host
     if instanceHost == "" {
         ip, err := utils.GetLocalIP()
         if err != nil {
+            fmt.Printf("Failed to get local IP, error is [%v]\n", err)
             os.Exit(-1)
         }
         instanceHost = ip.String()

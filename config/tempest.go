@@ -36,12 +36,13 @@ type Service struct {
     RegisterSelf    bool   `mapstructure:"register-self"`
     DeregisterAfter string `mapstructure:"deregister-after"`
     Host            string
+    Tags            []string
     Health
 }
 
 type Health struct {
     CheckInerval string `mapstructure:"check-interval"`
-    CheckUrl    string `mapstructure:"check-url"`
+    CheckUrl     string `mapstructure:"check-url"`
 }
 
 type Logger struct {
