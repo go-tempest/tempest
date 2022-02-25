@@ -3,10 +3,13 @@ package register
 import (
     "fmt"
     "github.com/go-tempest/tempest/config"
+    "github.com/go-tempest/tempest/consts"
     "github.com/go-tempest/tempest/discovery"
+    tempesterr "github.com/go-tempest/tempest/error"
+    "github.com/go-tempest/tempest/log"
     "github.com/go-tempest/tempest/utils"
-    uuid "github.com/satori/go.uuid"
     "os"
+    "strconv"
 )
 
 const (
@@ -29,7 +32,11 @@ func (r *Registration) StartIfNecessary() {
         if registerSelf {
 
             serviceName := config.TempestConfig.Application.Name
-            instanceId := serviceName + instanceIdSeparator + uuid.NewV4().String()
+            instanceId, err := createInstanceId(serviceName)
+            if err != nil {
+                log.Logger.Error(fmt.Sprintf("Service [%s] register failed", serviceName), err)
+                os.Exit(-1)
+            }
             instanceHost := getLocalHost()
             instancePort := config.TempestConfig.Application.Port
             healthCheckUrl := getHealthCheckUrl()
@@ -38,7 +45,7 @@ func (r *Registration) StartIfNecessary() {
             if !client.Register(serviceName, instanceId, instanceHost,
                 instancePort, healthCheckUrl, nil, tags...) {
 
-                fmt.Println("Failed to register for service")
+                log.Logger.Error("Failed to register for service")
                 os.Exit(-1)
             }
         }
@@ -78,4 +85,18 @@ func getLocalHost() string {
         instanceHost = ip.String()
     }
     return instanceHost
+}
+
+func createInstanceId(svcName string) (string, tempesterr.UnifiedErr) {
+
+    if svcName == "" {
+        return "", tempesterr.SystemErr{
+            C:             consts.IllegalArgument,
+            CustomMessage: "argument [svcName] is empty",
+        }
+    }
+
+    env := config.TempestConfig.Application.Profiles.Active
+    return svcName + instanceIdSeparator + string(env) + instanceIdSeparator +
+        getLocalHost() + ":" + strconv.Itoa(config.TempestConfig.Application.Port), nil
 }
