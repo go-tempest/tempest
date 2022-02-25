@@ -5,6 +5,7 @@ import (
     "net"
 )
 
+// GetLocalIP Obtain the valid IP address of the first valid NIC from the list of native NICs
 func GetLocalIP() (net.IP, error) {
 
     ifaces, err := net.Interfaces()
@@ -14,12 +15,14 @@ func GetLocalIP() (net.IP, error) {
 
     for _, iface := range ifaces {
 
+        // interface down
         if iface.Flags&net.FlagUp == 0 {
-            continue // interface down
+            continue
         }
 
+        // loopback interface
         if iface.Flags&net.FlagLoopback != 0 {
-            continue // loopback interface
+            continue
         }
 
         addrs, err := iface.Addrs()
@@ -28,7 +31,7 @@ func GetLocalIP() (net.IP, error) {
         }
 
         for _, addr := range addrs {
-            ip := getIpFromAddr(addr)
+            ip := getIPfromAddr(addr)
             if ip == nil {
                 continue
             }
@@ -39,7 +42,7 @@ func GetLocalIP() (net.IP, error) {
     return nil, errors.New("no valid ip address found")
 }
 
-func getIpFromAddr(addr net.Addr) net.IP {
+func getIPfromAddr(addr net.Addr) net.IP {
 
     var ip net.IP
 
@@ -54,9 +57,10 @@ func getIpFromAddr(addr net.Addr) net.IP {
         return nil
     }
 
+    // not an ipv4 address
     ip = ip.To4()
     if ip == nil {
-        return nil // not an ipv4 address
+        return nil
     }
 
     return ip

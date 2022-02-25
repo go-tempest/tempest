@@ -36,6 +36,7 @@ type Service struct {
 	RegisterSelf    bool   `mapstructure:"register-self"`
 	DeregisterAfter string `mapstructure:"deregister-after"`
 	Host            string
+  Tags            []string
 	Health
 }
 
