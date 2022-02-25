@@ -1,9 +1,15 @@
 package log
 
-import "go.uber.org/zap"
-
 type Log interface {
-	With(args ...interface{}) *zap.SugaredLogger
+	BaseLog
+	Base
+}
+
+type BaseLog interface {
+	With(args ...interface{}) Base
+}
+
+type Base interface {
 	Debug(args ...interface{})
 	Info(args ...interface{})
 	Warn(args ...interface{})

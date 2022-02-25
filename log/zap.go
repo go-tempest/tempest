@@ -13,7 +13,7 @@ type ZapLog struct {
 	Logger *zap.SugaredLogger
 }
 
-func (zl *ZapLog) With(args ...interface{}) *zap.SugaredLogger {
+func (zl *ZapLog) With(args ...interface{}) Base {
 	return zl.Logger.With(args)
 }
 
