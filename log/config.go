@@ -1,32 +1,34 @@
 package log
 
 import (
-    "github.com/go-tempest/tempest/config"
+	"github.com/go-tempest/tempest/config"
 )
+
+var Logger Log
 
 type (
-    Type  string
-    Level string
+	Type  string
+	Level string
 )
 
 const (
-    Zap Type = "zap"
+	Zap Type = "zap"
 )
 
 const (
-    Debug Level = "debug"
-    Info        = "info"
-    Error       = "error"
-    Panic       = "panic"
-    Fatal       = "fatal"
+	Debug Level = "debug"
+	Info        = "info"
+	Error       = "error"
+	Panic       = "panic"
+	Fatal       = "fatal"
 )
 
 func Initialize() {
-    t := config.TempestConfig.Logger.Type
-    switch Type(t) {
-    case Zap:
-        Create()
-    default:
-        Create()
-    }
+	t := config.TempestConfig.Logger.Type
+	switch Type(t) {
+	case Zap:
+		Logger = Create()
+	default:
+		Logger = Create()
+	}
 }
