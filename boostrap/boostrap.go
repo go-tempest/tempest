@@ -1,72 +1,36 @@
 package boostrap
 
 import (
-    "flag"
-    "fmt"
-    "github.com/go-tempest/tempest/config"
-    "github.com/go-tempest/tempest/log"
-    "github.com/go-tempest/tempest/register"
-    "github.com/spf13/viper"
-    "os"
-    "path"
+    "github.com/go-tempest/tempest/comp"
+    "github.com/go-tempest/tempest/core"
     "sync"
 )
 
-type bootstrap struct {
+type ServerBootstrap struct {
     sync.Once
+    comps []comp.Starter
+    ctx   *core.Context
 }
 
-func (b *bootstrap) start() {
+func (b *ServerBootstrap) initialize() {
+    b.ctx = new(core.Context)
+    b.comps = []comp.Starter{
+        &comp.LoggerStarter{},
+        &comp.ConfigStarter{},
+        &comp.RegistrationStarter{},
+    }
+}
+
+func (b *ServerBootstrap) start() {
     b.Do(func() {
-        new(register.Registration).StartIfNecessary()
-        // TODO 启动
+        for _, c := range b.comps {
+            c.Start(b.ctx)
+        }
     })
 }
 
-func getFlagConfigPath() *string {
-    configPath := flag.String(
-        "conf",
-        "",
-        "Specifies the path used to search the configuration file")
-    flag.Parse()
-    return configPath
-}
-
-func getDefaultConfigPath() *string {
-    workDir, err := os.Getwd()
-    if err != nil {
-        return nil
-    }
-    p := path.Join(workDir, "resources")
-    return &p
-}
-
-func parseYaml(v *viper.Viper) {
-    if err := v.Unmarshal(&config.TempestConfig); err != nil {
-        fmt.Printf("Deserialization configuration failed, error is [%v]\n", err)
-        os.Exit(-1)
-    }
-}
-
 func init() {
-    initViper()
-    log.Initialize()
-
-    new(bootstrap).start()
-}
-
-func initViper() {
-    viper.AutomaticEnv()
-    viper.SetConfigType(config.DefaultConfigType)
-    viper.SetConfigName(config.DefaultConfigName)
-    viper.AddConfigPath(*getDefaultConfigPath())
-    viper.AddConfigPath(*getFlagConfigPath())
-
-    err := viper.ReadInConfig()
-    if err != nil {
-        fmt.Printf("Viper initialization failed, error is [%v]\n", err)
-        os.Exit(-1)
-    }
-
-    parseYaml(viper.GetViper())
+    b := new(ServerBootstrap)
+    b.initialize()
+    b.start()
 }

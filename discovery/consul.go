@@ -3,7 +3,6 @@ package discovery
 import (
     "fmt"
     "github.com/go-kit/kit/sd/consul"
-    tempestconfig "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/consts"
     tempesterr "github.com/go-tempest/tempest/error"
     "github.com/go-tempest/tempest/log"
@@ -48,9 +47,7 @@ func New(registerHost string, registerPort int) (Client, error) {
     }, err
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, instanceHost string,
-    instancePort int, healthCheckUrl string,
-    meta map[string]string, tags ...string) bool {
+func (wrapper *ConsulDiscoveryClientWrapper) Register(logger log.FlagLogger, serviceName, instanceId, instanceHost string, instancePort int, healthCheckUrl, checkInterval, deregisterAfter string, meta map[string]string, tags ...string) bool {
 
     registration := &api.AgentServiceRegistration{
         ID:      instanceId,
@@ -60,10 +57,8 @@ func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, i
         Meta:    meta,
         Tags:    tags,
         Check: &api.AgentServiceCheck{
-            Interval: getStringVal(
-                tempestconfig.TempestConfig.Registration.Service.Health.CheckInerval, defaultHealthCheckInterval),
-            DeregisterCriticalServiceAfter: getStringVal(
-                tempestconfig.TempestConfig.Registration.Service.DeregisterAfter, defaultDeregisterServiceAfter),
+            Interval:                       getStringVal(checkInterval, defaultHealthCheckInterval),
+            DeregisterCriticalServiceAfter: getStringVal(deregisterAfter, defaultDeregisterServiceAfter),
             HTTP: fmt.Sprintf("%s%s%s%s%s", httpProtocol, instanceHost,
                 portSeparator, strconv.Itoa(instancePort), healthCheckUrl),
         },
@@ -71,15 +66,15 @@ func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, i
 
     err := wrapper.client.Register(registration)
     if err != nil {
-        log.Logger.Error("Register Service Error", err)
+        logger().Error("Register Service Error", err)
         return false
     }
 
-    log.Logger.Info("Register Service Success!")
+    logger().Info("Register Service Success!")
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string) bool {
+func (wrapper *ConsulDiscoveryClientWrapper) Deregister(logger log.FlagLogger, instanceId string) bool {
 
     registration := &api.AgentServiceRegistration{
         ID: instanceId,
@@ -87,15 +82,16 @@ func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string) bool 
 
     err := wrapper.client.Deregister(registration)
     if err != nil {
-        log.Logger.Error("Deregister Service Error!", err)
+        logger().Error("Deregister Service Error!", err)
         return false
     }
 
-    log.Logger.Info("Deregister Service Success!")
+    logger().Info("Deregister Service Success!")
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag string) []interface{} {
+func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(logger log.FlagLogger,
+    serviceName, tag string) []interface{} {
 
     instanceList, ok := wrapper.instanceCache.Load(serviceName)
     if ok {
@@ -113,7 +109,7 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag s
     go func() {
         params, err := getWatchParams("type", "service", "service", serviceName)
         if err != nil {
-            log.Logger.Error("Discover Service Error!", err)
+            logger().Error("Discover Service Error!", err)
             return
         }
 
@@ -145,14 +141,14 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag s
 
         e := plan.Run(wrapper.config.Address)
         if e != nil {
-            log.Logger.Error("Discover Service Error!", e)
+            logger().Error("Discover Service Error!", e)
         }
     }()
 
     entries, _, err := wrapper.client.Service(serviceName, tag, true, nil)
     if err != nil {
         wrapper.instanceCache.Store(serviceName, []interface{}{})
-        log.Logger.Error("Discover Service Error!", err)
+        logger().Error("Discover Service Error!", err)
         return nil
     }
 

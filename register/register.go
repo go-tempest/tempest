@@ -1,12 +1,10 @@
 package register
 
 import (
-    "fmt"
-    "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/consts"
+    "github.com/go-tempest/tempest/core"
     "github.com/go-tempest/tempest/discovery"
     tempesterr "github.com/go-tempest/tempest/error"
-    "github.com/go-tempest/tempest/log"
     "github.com/go-tempest/tempest/utils"
     "os"
     "strconv"
@@ -17,46 +15,52 @@ const (
     defaultHealthCheckUrl string = "/health"
 )
 
-type Registration struct {
+type Register struct {
 }
 
-func (r *Registration) StartIfNecessary() {
-    enabled := config.TempestConfig.Registration.Enabled
+func (r *Register) StartIfNecessary(ctx *core.Context) {
+
+    enabled := ctx.RegistrationConfig.Enabled
     if enabled {
-        client, err := r.connect()
+        client, err := r.connect(ctx)
         if err != nil {
+            ctx.Logger().Errorf("Failed to connect to registry\n", err)
             os.Exit(-1)
         }
 
-        registerSelf := config.TempestConfig.Registration.RegisterSelf
+        registerSelf := ctx.RegistrationConfig.RegisterSelf
         if registerSelf {
 
-            serviceName := config.TempestConfig.Application.Name
-            instanceId, err := createInstanceId(serviceName)
+            serviceName := ctx.AppConfig.Name
+            instanceId, err := createInstanceId(ctx, serviceName)
             if err != nil {
-                log.Logger.Error(fmt.Sprintf("Service [%s] register failed", serviceName), err)
+                ctx.Logger().Errorf("Service [%s] register failed\n", serviceName, err)
                 os.Exit(-1)
             }
-            instanceHost := getLocalHost()
-            instancePort := config.TempestConfig.Application.Port
-            healthCheckUrl := getHealthCheckUrl()
-            tags := config.TempestConfig.Registration.Service.Tags
+            instanceHost := getLocalHost(ctx)
+            instancePort := ctx.AppConfig.Port
+            healthCheckUrl := getHealthCheckUrl(ctx)
+            tags := ctx.RegistrationConfig.Service.Tags
 
-            if !client.Register(serviceName, instanceId, instanceHost,
-                instancePort, healthCheckUrl, nil, tags...) {
+            checkInerval := ctx.RegistrationConfig.Health.CheckInerval
+            deregisterAfter := ctx.RegistrationConfig.Service.DeregisterAfter
 
-                log.Logger.Error("Failed to register for service")
+            if !client.Register(ctx.Logger, serviceName, instanceId, instanceHost,
+                instancePort, healthCheckUrl, checkInerval,
+                deregisterAfter, nil, tags...) {
+
+                ctx.Logger().Errorf("Service [%s] register failed\n", serviceName)
                 os.Exit(-1)
             }
         }
     }
 }
 
-func (r *Registration) connect() (discovery.Client, error) {
+func (r *Register) connect(ctx *core.Context) (discovery.Client, error) {
 
     client, err := discovery.New(
-        config.TempestConfig.Registration.Address,
-        config.TempestConfig.Registration.Port,
+        ctx.RegistrationConfig.Address,
+        ctx.RegistrationConfig.Port,
     )
 
     if err != nil {
@@ -66,20 +70,20 @@ func (r *Registration) connect() (discovery.Client, error) {
     return client, nil
 }
 
-func getHealthCheckUrl() string {
-    url := config.TempestConfig.Registration.Service.Health.CheckUrl
+func getHealthCheckUrl(ctx *core.Context) string {
+    url := ctx.RegistrationConfig.Service.Health.CheckUrl
     if url == "" {
         url = defaultHealthCheckUrl
     }
     return url
 }
 
-func getLocalHost() string {
-    instanceHost := config.TempestConfig.Registration.Service.Host
+func getLocalHost(ctx *core.Context) string {
+    instanceHost := ctx.RegistrationConfig.Service.Host
     if instanceHost == "" {
         ip, err := utils.GetLocalIP()
         if err != nil {
-            fmt.Printf("Failed to get local IP, error is [%v]\n", err)
+            ctx.Logger().Errorf("Failed to get local IP, error is [%v]\n", err)
             os.Exit(-1)
         }
         instanceHost = ip.String()
@@ -87,7 +91,7 @@ func getLocalHost() string {
     return instanceHost
 }
 
-func createInstanceId(svcName string) (string, tempesterr.UnifiedErr) {
+func createInstanceId(ctx *core.Context, svcName string) (string, tempesterr.UnifiedErr) {
 
     if svcName == "" {
         return "", tempesterr.SystemErr{
@@ -96,7 +100,7 @@ func createInstanceId(svcName string) (string, tempesterr.UnifiedErr) {
         }
     }
 
-    env := config.TempestConfig.Application.Profiles.Active
+    env := ctx.BootstrapConfig.Active
     return svcName + instanceIdSeparator + string(env) + instanceIdSeparator +
-        getLocalHost() + ":" + strconv.Itoa(config.TempestConfig.Application.Port), nil
+        getLocalHost(ctx) + ":" + strconv.Itoa(ctx.AppConfig.Port), nil
 }
