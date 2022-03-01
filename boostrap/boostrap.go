@@ -1,23 +1,23 @@
 package boostrap
 
 import (
-    "github.com/go-tempest/tempest/comp"
     "github.com/go-tempest/tempest/core"
+    "github.com/go-tempest/tempest/starter"
     "sync"
 )
 
 type ServerBootstrap struct {
     sync.Once
-    comps []comp.Starter
-    ctx   *core.Context
+    comps []starter.Starter
+    ctx   *core.BootstrapContext
 }
 
 func (b *ServerBootstrap) initialize() {
-    b.ctx = new(core.Context)
-    b.comps = []comp.Starter{
-        &comp.LoggerStarter{},
-        &comp.ConfigStarter{},
-        &comp.RegistrationStarter{},
+    b.ctx = new(core.BootstrapContext)
+    b.comps = []starter.Starter{
+        &starter.LoggerStarter{},
+        &starter.ConfigStarter{},
+        &starter.RegistrationStarter{},
     }
 }
 

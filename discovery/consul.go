@@ -47,7 +47,10 @@ func New(registerHost string, registerPort int) (Client, error) {
     }, err
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Register(logger log.FlagLogger, serviceName, instanceId, instanceHost string, instancePort int, healthCheckUrl, checkInterval, deregisterAfter string, meta map[string]string, tags ...string) bool {
+func (wrapper *ConsulDiscoveryClientWrapper) Register(logger log.FlagLogger,
+    serviceName, instanceId, instanceHost string, instancePort int,
+    healthCheckUrl, checkInterval, deregisterAfter string,
+    meta map[string]string, tags ...string) bool {
 
     registration := &api.AgentServiceRegistration{
         ID:      instanceId,
@@ -90,8 +93,8 @@ func (wrapper *ConsulDiscoveryClientWrapper) Deregister(logger log.FlagLogger, i
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(logger log.FlagLogger,
-    serviceName, tag string) []interface{} {
+func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(
+    logger log.FlagLogger, serviceName, tag string) []interface{} {
 
     instanceList, ok := wrapper.instanceCache.Load(serviceName)
     if ok {

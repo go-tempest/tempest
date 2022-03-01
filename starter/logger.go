@@ -1,8 +1,8 @@
-package comp
+package starter
 
 import (
     "fmt"
-    "github.com/go-tempest/tempest/conf"
+    "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/core"
     "github.com/go-tempest/tempest/log"
     "github.com/spf13/viper"
@@ -12,14 +12,14 @@ import (
 type LoggerStarter struct {
 }
 
-func (ls *LoggerStarter) Start(ctx *core.Context) {
+func (ls *LoggerStarter) Start(ctx *core.BootstrapContext) {
 
     b := parseBootstrapYAML()
     logger := parseLoggerYAML(b)
 
     lt := log.LoggerType(logger.Type)
-    ll := conf.GetLoggerLevel(logger.Level)
-    e := conf.GetEnv(b.Active)
+    ll := config.GetLoggerLevel(logger.Level)
+    e := config.GetEnv(b.Active)
 
     filename := logger.File.Filename
     maxSize := logger.File.MaxSize
@@ -32,10 +32,10 @@ func (ls *LoggerStarter) Start(ctx *core.Context) {
     ctx.BootstrapConfig = b
 }
 
-func parseLoggerYAML(b *conf.Bootstrap) *conf.LoggerConfig {
+func parseLoggerYAML(b *config.Bootstrap) *config.LoggerConfig {
 
-    var logger conf.LoggerConfig
-    viper.SetConfigName(fmt.Sprintf(conf.DefaultLoggerConfigName, conf.GetEnv(b.Active)))
+    var logger config.LoggerConfig
+    viper.SetConfigName(fmt.Sprintf(config.DefaultLoggerConfigName, config.GetEnv(b.Active)))
 
     err := viper.ReadInConfig()
     if err != nil {

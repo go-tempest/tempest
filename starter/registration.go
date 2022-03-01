@@ -1,4 +1,4 @@
-package comp
+package starter
 
 import (
     "github.com/go-tempest/tempest/core"
@@ -8,6 +8,6 @@ import (
 type RegistrationStarter struct {
 }
 
-func (cs *RegistrationStarter) Start(ctx *core.Context) {
+func (cs *RegistrationStarter) Start(ctx *core.BootstrapContext) {
     new(register.Register).StartIfNecessary(ctx)
 }

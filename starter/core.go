@@ -1,25 +1,25 @@
-package comp
+package starter
 
 import (
     "fmt"
-    "github.com/go-tempest/tempest/conf"
+    "github.com/go-tempest/tempest/config"
     "github.com/go-tempest/tempest/core"
     "github.com/spf13/viper"
     "os"
 )
 
 type Starter interface {
-    Start(ctx *core.Context)
+    Start(ctx *core.BootstrapContext)
 }
 
-func parseBootstrapYAML() *conf.Bootstrap {
+func parseBootstrapYAML() *config.Bootstrap {
 
-    var b conf.Bootstrap
+    var b config.Bootstrap
 
-    viper.SetConfigType(conf.DefaultConfigType)
-    viper.AddConfigPath(*conf.GetDefaultConfigPath())
-    viper.AddConfigPath(*conf.GetFlagConfigPath())
-    viper.SetConfigName(conf.DefaultBootstrapConfigName)
+    viper.SetConfigType(config.DefaultConfigType)
+    viper.AddConfigPath(*config.GetDefaultConfigPath())
+    viper.AddConfigPath(*config.GetFlagConfigPath())
+    viper.SetConfigName(config.DefaultBootstrapConfigName)
 
     err := viper.ReadInConfig()
     if err != nil {
