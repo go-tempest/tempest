@@ -6,7 +6,7 @@ import (
 )
 
 type BootstrapContext struct {
-    Logger             log.FlagLogger
+    Logger            log.Logger
     BootstrapConfig    *config.Bootstrap
     AppConfig          *config.Application
     RegistrationConfig *config.Registration

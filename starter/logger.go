@@ -28,7 +28,7 @@ func (ls *LoggerStarter) Start(ctx *core.BootstrapContext) {
     compress := logger.File.Compress
     lic := logger.Console.LogInConsole
 
-    ctx.Logger = log.Wrap(lt, e, ll, filename, maxSize, maxBackups, maxAge, compress, lic)
+    ctx.Logger = log.Create(lt, e, ll, filename, maxSize, maxBackups, maxAge, compress, lic)
     ctx.BootstrapConfig = b
 }
 

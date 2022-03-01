@@ -8,13 +8,13 @@ import (
 
 type ServerBootstrap struct {
     sync.Once
-    comps []starter.Starter
-    ctx   *core.BootstrapContext
+    starters []starter.Starter
+    ctx      *core.BootstrapContext
 }
 
 func (b *ServerBootstrap) initialize() {
     b.ctx = new(core.BootstrapContext)
-    b.comps = []starter.Starter{
+    b.starters = []starter.Starter{
         &starter.LoggerStarter{},
         &starter.ConfigStarter{},
         &starter.RegistrationStarter{},
@@ -23,7 +23,7 @@ func (b *ServerBootstrap) initialize() {
 
 func (b *ServerBootstrap) start() {
     b.Do(func() {
-        for _, c := range b.comps {
+        for _, c := range b.starters {
             c.Start(b.ctx)
         }
     })

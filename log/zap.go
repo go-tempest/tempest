@@ -9,16 +9,53 @@ import (
 )
 
 type ZapLogger struct {
+    logger *zap.SugaredLogger
 }
 
-func (ZapLogger) createZap(env env.Env, level LoggerLevel, filename string,
-    maxSize, maxBackups, maxAge int, compress, logInConsole bool) *zap.SugaredLogger {
+func (zl *ZapLogger) With(args ...interface{}) BaseLogger {
+    return zl.logger.With(args)
+}
+
+func (zl *ZapLogger) Debug(args ...interface{}) {
+    zl.logger.Debug(args)
+}
+
+func (zl *ZapLogger) Debugf(template string, args ...interface{}) {
+    zl.logger.Debugf(template, args)
+}
+
+func (zl *ZapLogger) Info(args ...interface{}) {
+    zl.logger.Info(args)
+}
+
+func (zl *ZapLogger) Infof(template string, args ...interface{}) {
+    zl.logger.Infof(template, args)
+}
+
+func (zl *ZapLogger) Warn(args ...interface{}) {
+    zl.logger.Warn(args)
+}
+
+func (zl *ZapLogger) Warnf(template string, args ...interface{}) {
+    zl.logger.Warn(template, args)
+}
+
+func (zl *ZapLogger) Error(args ...interface{}) {
+    zl.logger.Error(args)
+}
+
+func (zl *ZapLogger) Errorf(template string, args ...interface{}) {
+    zl.logger.Error(template, args)
+}
+
+func (zl *ZapLogger) create(env env.Env, level LoggerLevel, filename string,
+    maxSize, maxBackups, maxAge int, compress, logInConsole bool) {
 
     enc := getEncoder(env)
     ws := getLogWriter(filename, maxSize, maxBackups, maxAge, compress, logInConsole)
     core := zapcore.NewCore(enc, ws, getLevel(level))
 
-    return zap.New(core).Sugar()
+    zl.logger = zap.New(core).Sugar()
 }
 
 func getLevel(ll LoggerLevel) (zapLevel zapcore.Level) {

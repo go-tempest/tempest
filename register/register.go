@@ -24,7 +24,7 @@ func (r *Register) StartIfNecessary(ctx *core.BootstrapContext) {
     if enabled {
         client, err := r.connect(ctx)
         if err != nil {
-            ctx.Logger().Errorf("Failed to connect to registry\n", err)
+            ctx.Logger.Errorf("Failed to connect to registry\n", err)
             os.Exit(-1)
         }
 
@@ -34,7 +34,7 @@ func (r *Register) StartIfNecessary(ctx *core.BootstrapContext) {
             serviceName := ctx.AppConfig.Name
             instanceId, err := createInstanceId(ctx, serviceName)
             if err != nil {
-                ctx.Logger().Errorf("Service [%s] register failed\n", serviceName, err)
+                ctx.Logger.Errorf("Service [%s] register failed\n", serviceName, err)
                 os.Exit(-1)
             }
             instanceHost := getLocalHost(ctx)
@@ -45,11 +45,11 @@ func (r *Register) StartIfNecessary(ctx *core.BootstrapContext) {
             checkInerval := ctx.RegistrationConfig.Health.CheckInerval
             deregisterAfter := ctx.RegistrationConfig.Service.DeregisterAfter
 
-            if !client.Register(ctx.Logger, serviceName, instanceId, instanceHost,
+            if !client.Register(serviceName, instanceId, instanceHost,
                 instancePort, healthCheckUrl, checkInerval,
                 deregisterAfter, nil, tags...) {
 
-                ctx.Logger().Errorf("Service [%s] register failed\n", serviceName)
+                ctx.Logger.Errorf("Service [%s] register failed\n", serviceName)
                 os.Exit(-1)
             }
         }
@@ -83,7 +83,7 @@ func getLocalHost(ctx *core.BootstrapContext) string {
     if instanceHost == "" {
         ip, err := utils.GetLocalIP()
         if err != nil {
-            ctx.Logger().Errorf("Failed to get local IP, error is [%v]\n", err)
+            ctx.Logger.Errorf("Failed to get local IP, error is [%v]\n", err)
             os.Exit(-1)
         }
         instanceHost = ip.String()
