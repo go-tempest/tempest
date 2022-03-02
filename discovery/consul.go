@@ -47,7 +47,8 @@ func New(registerHost string, registerPort int) (Client, error) {
     }, err
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, instanceHost string, instancePort int,
+func (wrapper *ConsulDiscoveryClientWrapper) Register(logger log.Logger,
+    serviceName, instanceId, instanceHost string, instancePort int,
     healthCheckUrl, checkInterval, deregisterAfter string,
     meta map[string]string, tags ...string) bool {
 
@@ -68,15 +69,15 @@ func (wrapper *ConsulDiscoveryClientWrapper) Register(serviceName, instanceId, i
 
     err := wrapper.client.Register(registration)
     if err != nil {
-        log.GlobalLogger.Error("Register Service Error", err)
+        logger.Error("Register Service Error", err)
         return false
     }
 
-    log.GlobalLogger.Info("Register Service Success!")
+    logger.Info("Register Service Success!")
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string) bool {
+func (wrapper *ConsulDiscoveryClientWrapper) Deregister(logger log.Logger, instanceId string) bool {
 
     registration := &api.AgentServiceRegistration{
         ID: instanceId,
@@ -84,15 +85,16 @@ func (wrapper *ConsulDiscoveryClientWrapper) Deregister(instanceId string) bool 
 
     err := wrapper.client.Deregister(registration)
     if err != nil {
-        log.GlobalLogger.Error("Deregister Service Error!", err)
+        logger.Error("Deregister Service Error!", err)
         return false
     }
 
-    log.GlobalLogger.Info("Deregister Service Success!")
+    logger.Info("Deregister Service Success!")
     return true
 }
 
-func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag string) []interface{} {
+func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(
+    logger log.Logger, serviceName, tag string) []interface{} {
 
     instanceList, ok := wrapper.instanceCache.Load(serviceName)
     if ok {
@@ -110,7 +112,7 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag s
     go func() {
         params, err := getWatchParams("type", "service", "service", serviceName)
         if err != nil {
-            log.GlobalLogger.Error("Discover Service Error!", err)
+            logger.Error("Discover Service Error!", err)
             return
         }
 
@@ -142,14 +144,14 @@ func (wrapper *ConsulDiscoveryClientWrapper) DiscoverServices(serviceName, tag s
 
         e := plan.Run(wrapper.config.Address)
         if e != nil {
-            log.GlobalLogger.Error("Discover Service Error!", e)
+            logger.Error("Discover Service Error!", e)
         }
     }()
 
     entries, _, err := wrapper.client.Service(serviceName, tag, true, nil)
     if err != nil {
         wrapper.instanceCache.Store(serviceName, []interface{}{})
-        log.GlobalLogger.Error("Discover Service Error!", err)
+        logger.Error("Discover Service Error!", err)
         return nil
     }
 

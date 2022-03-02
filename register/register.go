@@ -45,7 +45,7 @@ func (r *Register) StartIfNecessary(ctx *core.TempestContext) {
             checkInerval := ctx.RegistrationConfig.Health.CheckInerval
             deregisterAfter := ctx.RegistrationConfig.Service.DeregisterAfter
 
-            if !client.Register(serviceName, instanceId, instanceHost,
+            if !client.Register(ctx.Logger, serviceName, instanceId, instanceHost,
                 instancePort, healthCheckUrl, checkInerval,
                 deregisterAfter, nil, tags...) {
 
