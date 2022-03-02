@@ -12,7 +12,7 @@ import (
 type LoggerStarter struct {
 }
 
-func (ls *LoggerStarter) Start(ctx *core.BootstrapContext) {
+func (ls *LoggerStarter) Start(ctx *core.TempestContext) {
 
     b := parseBootstrapYAML()
     logger := parseLoggerYAML(b)
@@ -28,8 +28,8 @@ func (ls *LoggerStarter) Start(ctx *core.BootstrapContext) {
     compress := logger.File.Compress
     lic := logger.Console.LogInConsole
 
-    ctx.Logger = log.Create(lt, e, ll, filename, maxSize, maxBackups, maxAge, compress, lic)
     ctx.BootstrapConfig = b
+    ctx.Logger = log.Create(lt, e, ll, filename, maxSize, maxBackups, maxAge, compress, lic)
 }
 
 func parseLoggerYAML(b *config.Bootstrap) *config.LoggerConfig {

@@ -56,9 +56,6 @@ func Create(lt LoggerType, env env.Env, level LoggerLevel,
         zl := new(ZapLogger)
         zl.create(env, level, filename, maxSize,
             maxBackups, maxAge, compress, logInConsole)
-        GlobalLogger = zl
         return zl
     }
 }
-
-var GlobalLogger Logger

@@ -8,6 +8,6 @@ import (
 type RegistrationStarter struct {
 }
 
-func (cs *RegistrationStarter) Start(ctx *core.BootstrapContext) {
+func (cs *RegistrationStarter) Start(ctx *core.TempestContext) {
     new(register.Register).StartIfNecessary(ctx)
 }

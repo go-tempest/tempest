@@ -11,7 +11,7 @@ import (
 type ConfigStarter struct {
 }
 
-func (cs *ConfigStarter) Start(ctx *core.BootstrapContext) {
+func (cs *ConfigStarter) Start(ctx *core.TempestContext) {
 
     app := parseAppYAML(ctx.BootstrapConfig)
     r := parseRegistrationYAML(ctx.BootstrapConfig)

@@ -18,7 +18,7 @@ const (
 type Register struct {
 }
 
-func (r *Register) StartIfNecessary(ctx *core.BootstrapContext) {
+func (r *Register) StartIfNecessary(ctx *core.TempestContext) {
 
     enabled := ctx.RegistrationConfig.Enabled
     if enabled {
@@ -56,7 +56,7 @@ func (r *Register) StartIfNecessary(ctx *core.BootstrapContext) {
     }
 }
 
-func (r *Register) connect(ctx *core.BootstrapContext) (discovery.Client, error) {
+func (r *Register) connect(ctx *core.TempestContext) (discovery.Client, error) {
 
     client, err := discovery.New(
         ctx.RegistrationConfig.Address,
@@ -70,7 +70,7 @@ func (r *Register) connect(ctx *core.BootstrapContext) (discovery.Client, error)
     return client, nil
 }
 
-func getHealthCheckUrl(ctx *core.BootstrapContext) string {
+func getHealthCheckUrl(ctx *core.TempestContext) string {
     url := ctx.RegistrationConfig.Service.Health.CheckUrl
     if url == "" {
         url = defaultHealthCheckUrl
@@ -78,7 +78,7 @@ func getHealthCheckUrl(ctx *core.BootstrapContext) string {
     return url
 }
 
-func getLocalHost(ctx *core.BootstrapContext) string {
+func getLocalHost(ctx *core.TempestContext) string {
     instanceHost := ctx.RegistrationConfig.Service.Host
     if instanceHost == "" {
         ip, err := utils.GetLocalIP()
@@ -91,7 +91,7 @@ func getLocalHost(ctx *core.BootstrapContext) string {
     return instanceHost
 }
 
-func createInstanceId(ctx *core.BootstrapContext, svcName string) (string, tempesterr.UnifiedErr) {
+func createInstanceId(ctx *core.TempestContext, svcName string) (string, tempesterr.UnifiedErr) {
 
     if svcName == "" {
         return "", tempesterr.SystemErr{

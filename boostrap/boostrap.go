@@ -9,11 +9,11 @@ import (
 type ServerBootstrap struct {
     sync.Once
     starters []starter.Starter
-    ctx      *core.BootstrapContext
+    ctx      *core.TempestContext
 }
 
 func (b *ServerBootstrap) initialize() {
-    b.ctx = new(core.BootstrapContext)
+    b.ctx = new(core.TempestContext)
     b.starters = []starter.Starter{
         &starter.LoggerStarter{},
         &starter.ConfigStarter{},
@@ -33,4 +33,11 @@ func init() {
     b := new(ServerBootstrap)
     b.initialize()
     b.start()
+    ctx = b.ctx
+}
+
+var ctx *core.TempestContext
+
+func GetContext() *core.TempestContext {
+    return ctx
 }

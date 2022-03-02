@@ -9,7 +9,7 @@ import (
 )
 
 type Starter interface {
-    Start(ctx *core.BootstrapContext)
+    Start(ctx *core.TempestContext)
 }
 
 func parseBootstrapYAML() *config.Bootstrap {
