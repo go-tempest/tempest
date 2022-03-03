@@ -48,6 +48,10 @@ func (zl *ZapLogger) Errorf(template string, args ...interface{}) {
     zl.logger.Error(template, args)
 }
 
+func (zl *ZapLogger) Sync() error {
+    return zl.logger.Sync()
+}
+
 func (zl *ZapLogger) create(env env.Env, level LoggerLevel, filename string,
     maxSize, maxBackups, maxAge int, compress, logInConsole bool) {
 

@@ -43,6 +43,8 @@ type BaseLogger interface {
 
     Error(args ...interface{})
     Errorf(template string, args ...interface{})
+
+    Sync() error
 }
 
 func Create(lt LoggerType, env env.Env, level LoggerLevel,
