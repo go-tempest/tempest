@@ -48,7 +48,7 @@ func (zl *ZapLogger) Errorf(template string, args ...interface{}) {
     zl.logger.Error(template, args)
 }
 
-func (zl *ZapLogger) Sync() error {
+func (zl *ZapLogger) Flush() error {
     return zl.logger.Sync()
 }
 

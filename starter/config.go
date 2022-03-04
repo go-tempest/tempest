@@ -2,8 +2,8 @@ package starter
 
 import (
     "fmt"
+    "github.com/go-tempest/tempest/boostrap/context"
     "github.com/go-tempest/tempest/config"
-    "github.com/go-tempest/tempest/core"
     "github.com/spf13/viper"
     "os"
 )
@@ -11,7 +11,7 @@ import (
 type ConfigStarter struct {
 }
 
-func (cs *ConfigStarter) Start(ctx *core.TempestContext) {
+func (cs *ConfigStarter) Start(ctx *context.BootstrapContext) {
 
     app := parseAppYAML(ctx.BootstrapConfig)
     r := parseRegistrationYAML(ctx.BootstrapConfig)
@@ -28,13 +28,13 @@ func parseRegistrationYAML(b *config.Bootstrap) *config.RegistrationConfig {
     err := viper.ReadInConfig()
     if err != nil {
         fmt.Printf("Viper initialization failed, error is [%v]\n", err)
-        os.Exit(-1)
+        os.Exit(1)
     }
 
     v := viper.GetViper()
     if err := v.Unmarshal(&registration); err != nil {
         fmt.Printf("Deserialization configuration failed, error is [%v]\n", err)
-        os.Exit(-1)
+        os.Exit(1)
     }
 
     return &registration

@@ -2,14 +2,14 @@ package starter
 
 import (
     "fmt"
+    "github.com/go-tempest/tempest/boostrap/context"
     "github.com/go-tempest/tempest/config"
-    "github.com/go-tempest/tempest/core"
     "github.com/spf13/viper"
     "os"
 )
 
 type Starter interface {
-    Start(ctx *core.TempestContext)
+    Start(ctx *context.BootstrapContext)
 }
 
 func parseBootstrapYAML() *config.Bootstrap {
@@ -24,13 +24,13 @@ func parseBootstrapYAML() *config.Bootstrap {
     err := viper.ReadInConfig()
     if err != nil {
         fmt.Printf("Viper initialization failed, error is [%v]\n", err)
-        os.Exit(-1)
+        os.Exit(1)
     }
 
     v := viper.GetViper()
     if err := v.Unmarshal(&b); err != nil {
         fmt.Printf("Deserialization configuration failed, error is [%v]\n", err)
-        os.Exit(-1)
+        os.Exit(1)
     }
 
     return &b

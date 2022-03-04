@@ -2,8 +2,8 @@ package starter
 
 import (
     "fmt"
+    "github.com/go-tempest/tempest/boostrap/context"
     "github.com/go-tempest/tempest/config"
-    "github.com/go-tempest/tempest/core"
     "github.com/go-tempest/tempest/log"
     "github.com/spf13/viper"
     "os"
@@ -12,7 +12,7 @@ import (
 type LoggerStarter struct {
 }
 
-func (ls *LoggerStarter) Start(ctx *core.TempestContext) {
+func (ls *LoggerStarter) Start(ctx *context.BootstrapContext) {
 
     b := parseBootstrapYAML()
     logger := parseLoggerYAML(b)
@@ -40,13 +40,13 @@ func parseLoggerYAML(b *config.Bootstrap) *config.LoggerConfig {
     err := viper.ReadInConfig()
     if err != nil {
         fmt.Printf("Viper initialization failed, error is [%v]\n", err)
-        os.Exit(-1)
+        os.Exit(1)
     }
 
     v := viper.GetViper()
     if err := v.Unmarshal(&logger); err != nil {
         fmt.Printf("Deserialization configuration failed, error is [%v]\n", err)
-        os.Exit(-1)
+        os.Exit(1)
     }
 
     return &logger

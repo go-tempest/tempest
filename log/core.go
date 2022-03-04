@@ -23,8 +23,13 @@ const (
 )
 
 type Logger interface {
-    FlagLogger
     BaseLogger
+    FlagLogger
+    FlushLogger
+}
+
+type FlushLogger interface {
+    Flush() error
 }
 
 type FlagLogger interface {
@@ -43,8 +48,6 @@ type BaseLogger interface {
 
     Error(args ...interface{})
     Errorf(template string, args ...interface{})
-
-    Sync() error
 }
 
 func Create(lt LoggerType, env env.Env, level LoggerLevel,
