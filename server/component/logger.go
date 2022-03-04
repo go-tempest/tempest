@@ -1,4 +1,4 @@
-package starter
+package component
 
 import (
     "fmt"
@@ -9,13 +9,14 @@ import (
     "os"
 )
 
-type LoggerStarter struct {
+type LoggerServerComponent struct {
+    bc BootstrapComponent
 }
 
-func (ls *LoggerStarter) Start(ctx *context.BootstrapContext) {
+func (ls *LoggerServerComponent) Execute(ctx *context.BootstrapContext) {
 
-    b := parseBootstrapYAML()
-    logger := parseLoggerYAML(b)
+    b := ls.bc.parseYAML()
+    logger := ls.parseYAML(b)
 
     lt := log.LoggerType(logger.Type)
     ll := config.GetLoggerLevel(logger.Level)
@@ -32,7 +33,7 @@ func (ls *LoggerStarter) Start(ctx *context.BootstrapContext) {
     ctx.Logger = log.Create(lt, e, ll, filename, maxSize, maxBackups, maxAge, compress, lic)
 }
 
-func parseLoggerYAML(b *config.Bootstrap) *config.LoggerConfig {
+func (ls *LoggerServerComponent) parseYAML(b *config.Bootstrap) *config.LoggerConfig {
 
     var logger config.LoggerConfig
     viper.SetConfigName(fmt.Sprintf(config.DefaultLoggerConfigName, config.GetEnv(b.Active)))

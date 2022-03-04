@@ -2,8 +2,7 @@ package boostrap
 
 import (
     "github.com/go-tempest/tempest/boostrap/context"
-    "github.com/go-tempest/tempest/starter"
-    "os"
+    comp "github.com/go-tempest/tempest/server/component"
     "sync"
 )
 
@@ -17,18 +16,18 @@ const (
 
 type ServerBootstrap struct {
     sync.Once
-    ctx      *context.BootstrapContext
-    starters []starter.Starter
-    hooks    map[ServerBootstrapLifecycle]ServerBootstrapHook
+    ctx   *context.BootstrapContext
+    comps []comp.ServerComponent
+    hooks map[ServerBootstrapLifecycle]ServerBootstrapHook
 }
 
 func (b *ServerBootstrap) initialize() {
     b.ctx = new(context.BootstrapContext)
     b.hooks = make(map[ServerBootstrapLifecycle]ServerBootstrapHook)
-    b.starters = []starter.Starter{
-        &starter.LoggerStarter{},
-        &starter.ConfigStarter{},
-        &starter.RegistrationStarter{},
+    b.comps = []comp.ServerComponent{
+        &comp.LoggerServerComponent{},
+        &comp.ConfigServerComponent{},
+        &comp.RegisterComponent{},
     }
 }
 
@@ -37,9 +36,6 @@ func (b *ServerBootstrap) ResigerHook(lifecycle ServerBootstrapLifecycle, hook S
 }
 
 func (b *ServerBootstrap) Start() {
-    if b == nil {
-        os.Exit(1)
-    }
 
     b.Do(func() {
         defer func() {
@@ -47,8 +43,8 @@ func (b *ServerBootstrap) Start() {
         }()
 
         triggerHook(b, Pre)
-        for _, c := range b.starters {
-            c.Start(b.ctx)
+        for _, c := range b.comps {
+            c.Execute(b.ctx)
         }
         triggerHook(b, Post)
     })

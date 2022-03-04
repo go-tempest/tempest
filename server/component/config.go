@@ -1,4 +1,4 @@
-package starter
+package component
 
 import (
     "fmt"
@@ -8,39 +8,23 @@ import (
     "os"
 )
 
-type ConfigStarter struct {
+type ConfigServerComponent struct {
+    bc BootstrapComponent
 }
 
-func (cs *ConfigStarter) Start(ctx *context.BootstrapContext) {
+func (cs *ConfigServerComponent) Execute(ctx *context.BootstrapContext) {
 
-    app := parseAppYAML(ctx.BootstrapConfig)
-    r := parseRegistrationYAML(ctx.BootstrapConfig)
+    if ctx.BootstrapConfig == nil {
+        ctx.BootstrapConfig = cs.bc.parseYAML()
+    }
+
+    app, r := cs.parseYAML(ctx.BootstrapConfig)
 
     ctx.AppConfig = &app.Application
     ctx.RegistrationConfig = &r.Registration
 }
 
-func parseRegistrationYAML(b *config.Bootstrap) *config.RegistrationConfig {
-
-    var registration config.RegistrationConfig
-    viper.SetConfigName(fmt.Sprintf(config.DefaultAppConfigName, config.GetEnv(b.Active)))
-
-    err := viper.ReadInConfig()
-    if err != nil {
-        fmt.Printf("Viper initialization failed, error is [%v]\n", err)
-        os.Exit(1)
-    }
-
-    v := viper.GetViper()
-    if err := v.Unmarshal(&registration); err != nil {
-        fmt.Printf("Deserialization configuration failed, error is [%v]\n", err)
-        os.Exit(1)
-    }
-
-    return &registration
-}
-
-func parseAppYAML(b *config.Bootstrap) *config.AppConfig {
+func (cs *ConfigServerComponent) parseYAML(b *config.Bootstrap) (*config.AppConfig, *config.RegistrationConfig) {
 
     var app config.AppConfig
     viper.SetConfigName(fmt.Sprintf(config.DefaultAppConfigName, config.GetEnv(b.Active)))
@@ -57,5 +41,19 @@ func parseAppYAML(b *config.Bootstrap) *config.AppConfig {
         os.Exit(-1)
     }
 
-    return &app
+    var registration config.RegistrationConfig
+    viper.SetConfigName(fmt.Sprintf(config.DefaultAppConfigName, config.GetEnv(b.Active)))
+
+    err = viper.ReadInConfig()
+    if err != nil {
+        fmt.Printf("Viper initialization failed, error is [%v]\n", err)
+        os.Exit(1)
+    }
+
+    if err := v.Unmarshal(&registration); err != nil {
+        fmt.Printf("Deserialization configuration failed, error is [%v]\n", err)
+        os.Exit(1)
+    }
+
+    return &app, &registration
 }

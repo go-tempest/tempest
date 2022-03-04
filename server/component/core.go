@@ -1,4 +1,4 @@
-package starter
+package component
 
 import (
     "fmt"
@@ -8,11 +8,14 @@ import (
     "os"
 )
 
-type Starter interface {
-    Start(ctx *context.BootstrapContext)
+type ServerComponent interface {
+    Execute(ctx *context.BootstrapContext)
 }
 
-func parseBootstrapYAML() *config.Bootstrap {
+type BootstrapComponent struct {
+}
+
+func (bc BootstrapComponent) parseYAML() *config.Bootstrap {
 
     var b config.Bootstrap
 
